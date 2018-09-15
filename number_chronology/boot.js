@@ -65,19 +65,5 @@ function bootLoader(){
 };
 
 function bootCreate(){
-	if(get_element_storage(game_id) !== null){
-		game_state_s = get_element_storage("game_state");
-		if(game_state_s === null)
-			this.scene.start("instructions");
-		else{
-			if(game_state_s === "instructions")
-				this.scene.start("instructions");
-			else if(game_state_s === "started")
-				this.scene.start("mainGame");
-		}
-	}else{
-		init_storage(game_id);
-		set_element_storage("game_state","booted");
-		this.scene.start('instructions');		
-	}
+	this.scene.start('instructions');
 };

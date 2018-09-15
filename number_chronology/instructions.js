@@ -26,7 +26,7 @@ function instructionsCreate(){
         gameObject.emit('clicked', gameObject);
     }, this);
 	hello.on('clicked',navigate,this);
-	set_element_storage("game_state","instructions");
+	console.log(this);
 };
 
 function navigate(text){
