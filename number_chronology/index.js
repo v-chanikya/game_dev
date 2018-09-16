@@ -1,15 +1,17 @@
 /*****************************************/
 // Game vars;
-var total_time = 120;
 var num_of_elements = 100;
 var score_text = null;
 var time_text = null;
 var timer = null;
 var prev = null;
-var arr = [];
 var game_id = "g1l1"
+
+// catched game vars 
+var total_time = 120;
 var score = 0;
-var game_state = "started" // can be started or ended 
+var arr = [];
+var game_state = "started" // can be started or in_progress or ended 
 
 var mainGameSceneConfig = {
     key: 'mainGame',
@@ -46,6 +48,24 @@ var config = {
 var game = new Phaser.Game(config);
 
 function mainGameLoader(){
+	game_state_s = get_element_storage("game_state");
+	if (game_state_s !== "instructions"){
+		game_state = game_state_s;
+		score = parseInt(get_element_storage("score"));
+		total_time = parseInt(get_element_storage("total_time"));
+		arr = get_element_storage("arr");
+		if(game_state_s === "in_progress"){
+
+		}
+	}else{
+		set_element_storage("game_state","started");
+		set_element_storage("score",score.toString());
+		set_element_storage("total_time",total_time.toString());
+
+		arr = Array.apply(null, {length: num_of_elements}).map(Number.call, Number);
+		arr = shuffle(arr);
+		set_element_storage("arr",arr);
+	}
 
 };
 
@@ -59,10 +79,7 @@ function mainGameCreate(){
     platforms.create(510, 752, 'ground').setScale(3).refreshBody();
 
 	cubes = this.physics.add.staticGroup();
-	arr = Array.apply(null, {length: num_of_elements}).map(Number.call, Number);
-	// console.log(arr);
-	arr = shuffle(arr);
-	// console.log(arr);
+
 	var x = 190 + 32;
 	var y = 96;
 	var style = { font: "32px Arial", fill: "#ffffff", wordWrap: true, wordWrapWidth: 64, align: "center" };
@@ -73,6 +90,10 @@ function mainGameCreate(){
 			child.on("clicked",printlog,this);
 			text  = this.add.text(x - 16, y - 16, gennum(i,j), style);
 			child.name = text.text;
+			if(score != 0 && (parseInt(child.name) == (score - 1))){
+				child.tint = 0x228b22;
+				prev = child;
+			}
 			x = x + 64;
 		}
 		x = 190 + 32;
@@ -91,17 +112,22 @@ function mainGameCreate(){
 	time_text = this.add.text(20,20,"Time:"+total_time,style);
 	score_text = this.add.text(850,20,"Score:99",style);
 	timer = this.time.addEvent({delay:1000,repeat:total_time,callback:onTimer,callbackScope:this});
+
+	// set catch
+	set_element_storage("game_state","in_progress");
+	game_state = "in_progress";
 };
 
 function mainGameUpdate(){
 	score_text.setText("Score:"+score);
 	if (game_state == "ended"){
-		this.scene.start('game_end',{game_score:score});
+		set_element_storage("game_state","ended");
+		this.scene.start("game_end",{game_score:score});
 	}
 };
 
 function printlog(child){
-	if(game_state == "started"){
+	if(game_state == "in_progress"){
 		if(validate_user_input(parseInt(child.name))){
 			if(prev != null){
 				prev.tint = 0xffffff;
@@ -116,6 +142,9 @@ function printlog(child){
 			endgame();
 		}
 	}
+
+	// update catch
+	set_element_storage("score",score.toString());
 };
 
 
@@ -134,7 +163,9 @@ function shuffle(array) {
 }
 
 function onTimer(){
-	if(game_state == "started"){
+	// update catch
+	set_element_storage("total_time",total_time.toString());
+	if(game_state == "in_progress"){
 		if(total_time > 0){
 			time_text.setText("Time:" + --total_time);
 		}else{
