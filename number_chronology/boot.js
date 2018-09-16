@@ -1,4 +1,7 @@
-var bootSceneConfig = {
+import {game_id} from './game_params';
+import {init_storage, get_element_storage, set_element_storage} from './utils';
+
+export var bootSceneConfig = {
     key: 'boot',
     active: true,
     preload: bootLoader,
@@ -66,7 +69,7 @@ function bootLoader(){
 
 function bootCreate(){
 	if(get_element_storage(game_id) !== null){
-		game_state_s = get_element_storage("game_state");
+		var game_state_s = get_element_storage("game_state");
 		if(game_state_s === null){
 			this.scene.start("instructions");
 		}

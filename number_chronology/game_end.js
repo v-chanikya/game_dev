@@ -1,4 +1,5 @@
-var game_endSceneConfig = {
+import {get_element_storage, set_element_storage, destroy_storage} from './utils';
+export var game_endSceneConfig = {
     key: 'game_end',
     active: false,
     visible: false,

@@ -1,4 +1,6 @@
-var instructionsSceneConfig = {
+import {get_element_storage, set_element_storage} from './utils';
+
+export var instructionsSceneConfig = {
     key: 'instructions',
     active: false,
     visible: false,
@@ -17,7 +19,7 @@ function instructionsCreate(){
 	
 	this.add.text(510,100,"Instructions",style_head).setOrigin(0.5,0.5);
 	this.add.text(510,200,"click on consicutive numbers, in the given time",style_data).setOrigin(0.5,0.5);
-	hello = this.add.text(510,400,"click to start",style_start);
+	var hello = this.add.text(510,400,"click to start",style_start);
 	hello.setOrigin(0.5,0.5);
 	hello.setInteractive();
 

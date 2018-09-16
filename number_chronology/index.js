@@ -1,17 +1,22 @@
+//import {num_of_elements, score_text, time_text, timer, prev, game_id, total_time, score, arr, game_state} from './game_params';
+import {num_of_elements, game_id} from './game_params';
+import {get_element_storage, set_element_storage} from './utils';
+import {instructionsSceneConfig} from './instructions';
+import {game_endSceneConfig} from './game_end';
+import {bootSceneConfig} from './boot';
+
 /*****************************************/
 // Game vars;
-var num_of_elements = 100;
 var score_text = null;
 var time_text = null;
 var timer = null;
 var prev = null;
-var game_id = "g1l1"
 
 // catched game vars 
 var total_time = 120;
 var score = 0;
 var arr = [];
-var game_state = "started" // can be started or in_progress or ended 
+var game_state = "started" // can be started or in_progress or ended
 
 var mainGameSceneConfig = {
     key: 'mainGame',
@@ -48,7 +53,7 @@ var config = {
 var game = new Phaser.Game(config);
 
 function mainGameLoader(){
-	game_state_s = get_element_storage("game_state");
+	var game_state_s = get_element_storage("game_state");
 	if (game_state_s !== "instructions"){
 		game_state = game_state_s;
 		score = parseInt(get_element_storage("score"));
@@ -74,21 +79,21 @@ function mainGameCreate(){
 	// Create scene
     this.add.image(400, 300, 'sky').setScale(2);
 
-    platforms = this.physics.add.staticGroup();
+    var platforms = this.physics.add.staticGroup();
 
     platforms.create(510, 752, 'ground').setScale(3).refreshBody();
 
-	cubes = this.physics.add.staticGroup();
+	var cubes = this.physics.add.staticGroup();
 
 	var x = 190 + 32;
 	var y = 96;
 	var style = { font: "32px Arial", fill: "#ffffff", wordWrap: true, wordWrapWidth: 64, align: "center" };
 	for (var i = 0; i < 10; i++) {
 		for (var j = 0; j < 10; j++) {
-			child = this.add.sprite(x,y,'cube').setScale(0.5);
+			var child = this.add.sprite(x,y,'cube').setScale(0.5);
 			child.setInteractive();
 			child.on("clicked",printlog,this);
-			text  = this.add.text(x - 16, y - 16, gennum(i,j), style);
+			var text  = this.add.text(x - 16, y - 16, gennum(i,j), style);
 			child.name = text.text;
 			if(score != 0 && (parseInt(child.name) == (score - 1))){
 				child.tint = 0x228b22;
