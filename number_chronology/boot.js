@@ -1,4 +1,7 @@
-var bootSceneConfig = {
+import {game_id} from './game_params';
+import {init_storage, get_element_storage, set_element_storage} from './utils';
+
+export var bootSceneConfig = {
     key: 'boot',
     active: true,
     preload: bootLoader,
@@ -41,7 +44,7 @@ function bootLoader(){
 	percentText.setOrigin(0.5, 0.5);
 
 	this.load.on('progress', function (value) {
-	    console.log(value);
+	    //console.log(value);
 	    progressBar.clear();
     	progressBar.fillStyle(0xffffff, 1);
     	progressBar.fillRect(250, 280, 300 * value, 30);
@@ -49,11 +52,11 @@ function bootLoader(){
 	});
 	            
 	this.load.on('fileprogress', function (file) {
-	    console.log(file.src);
+	    //console.log(file.src);
 	});
 	 
 	this.load.on('complete', function () {
-	    console.log('complete');
+	    //console.log('complete');
 	    progressBar.destroy();
 		progressBox.destroy();
 		loadingText.destroy();
@@ -65,5 +68,25 @@ function bootLoader(){
 };
 
 function bootCreate(){
-	this.scene.start('instructions');
+	if(get_element_storage(game_id) !== null){
+		var game_state_s = get_element_storage("game_state");
+		if(game_state_s === null){
+			this.scene.start("instructions");
+		}
+		else{
+			if(game_state_s === "instructions"){
+				this.scene.start("instructions");
+			}
+			else if(game_state_s === "started" || game_state_s === "in_progress"){
+				this.scene.start("mainGame");
+			}
+			else if(game_state_s === "ended"){
+				this.scene.start("game_end",{game_score:parseInt(get_element_storage("score"))});
+			}
+		}
+	}else{
+		init_storage(game_id);
+		set_element_storage("game_state","booted");
+		this.scene.start('instructions');		
+	}
 };

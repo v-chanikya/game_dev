@@ -1,13 +1,22 @@
+//import {num_of_elements, score_text, time_text, timer, prev, game_id, total_time, score, arr, game_state} from './game_params';
+import {num_of_elements, game_id} from './game_params';
+import {get_element_storage, set_element_storage} from './utils';
+import {instructionsSceneConfig} from './instructions';
+import {game_endSceneConfig} from './game_end';
+import {bootSceneConfig} from './boot';
+
 /*****************************************/
 // Game vars;
-var total_time = 120;
-var num_of_elements = 100;
 var score_text = null;
 var time_text = null;
 var timer = null;
 var prev = null;
-var arr = [];
 
+// catched game vars 
+var total_time = 120;
+var score = 0;
+var arr = [];
+var game_state = "started" // can be started or in_progress or ended
 
 var mainGameSceneConfig = {
     key: 'mainGame',
@@ -38,100 +47,58 @@ var config = {
     	mainGameSceneConfig,
     	game_endSceneConfig
     ] 
-    // scene: {
-    //     preload: preload,
-    //     create: create,
-    //     update: update
-    // }
 };
 
 //game_init
 var game = new Phaser.Game(config);
 
 function mainGameLoader(){
-	// this.load.image('sky', 'assets/sky.png');
-	// this.load.image('cube', 'assets/rocky01.png');
- //    this.load.image('ground', 'assets/platform.png');
+	var game_state_s = get_element_storage("game_state");
+	if (game_state_s !== "instructions"){
+		game_state = game_state_s;
+		score = parseInt(get_element_storage("score"));
+		total_time = parseInt(get_element_storage("total_time"));
+		arr = get_element_storage("arr");
+		if(game_state_s === "in_progress"){
 
- //    /////////////////////////////////////////////////////////
-	// // progress bar start //
-	// var progressBar = this.add.graphics();
-	// var progressBox = this.add.graphics();
-	// progressBox.fillStyle(0x222222, 0.8);
-	// progressBox.fillRect(240, 270, 320, 50);
-	// var width = this.cameras.main.width;
-	// var height = this.cameras.main.height;
-	// var loadingText = this.make.text({
-	//     x: width / 2,
-	//     y: height / 2 - 50,
-	//     text: 'Loading...',
-	//     style: {
-	//         font: '20px monospace',
-	//         fill: '#ffffff'
-	//     }
-	// });
-	// loadingText.setOrigin(0.5, 0.5);
+		}
+	}else{
+		set_element_storage("game_state","started");
+		set_element_storage("score",score.toString());
+		set_element_storage("total_time",total_time.toString());
 
-	// var percentText = this.make.text({
-	//     x: width / 2,
-	//     y: height / 2 - 5,
-	//     text: '0%',
-	//     style: {
-	//         font: '18px monospace',
-	//         fill: '#ffffff'
-	//     }
-	// });
-	// percentText.setOrigin(0.5, 0.5);
+		arr = Array.apply(null, {length: num_of_elements}).map(Number.call, Number);
+		arr = shuffle(arr);
+		set_element_storage("arr",arr);
+	}
 
-	// this.load.on('progress', function (value) {
-	//     console.log(value);
-	//     progressBar.clear();
- //    	progressBar.fillStyle(0xffffff, 1);
- //    	progressBar.fillRect(250, 280, 300 * value, 30);
- //    	percentText.setText(parseInt(value * 100) + '%');
-	// });
-	            
-	// this.load.on('fileprogress', function (file) {
-	//     console.log(file.src);
-	// });
-	 
-	// this.load.on('complete', function () {
-	//     console.log('complete');
-	//     progressBar.destroy();
-	// 	progressBox.destroy();
-	// 	loadingText.destroy();
-	// 	percentText.destroy();
-	// });    
-
-	// // progress bar end //
-	// //////////////////////////////////////////////////////////
 };
 
 
 function mainGameCreate(){
-
 	// Create scene
     this.add.image(400, 300, 'sky').setScale(2);
 
-    platforms = this.physics.add.staticGroup();
+    var platforms = this.physics.add.staticGroup();
 
     platforms.create(510, 752, 'ground').setScale(3).refreshBody();
 
-	cubes = this.physics.add.staticGroup();
-	arr = Array.apply(null, {length: num_of_elements}).map(Number.call, Number);
-	// console.log(arr);
-	arr = shuffle(arr);
-	// console.log(arr);
+	var cubes = this.physics.add.staticGroup();
+
 	var x = 190 + 32;
 	var y = 96;
 	var style = { font: "32px Arial", fill: "#ffffff", wordWrap: true, wordWrapWidth: 64, align: "center" };
 	for (var i = 0; i < 10; i++) {
 		for (var j = 0; j < 10; j++) {
-			child = this.add.sprite(x,y,'cube').setScale(0.5);
+			var child = this.add.sprite(x,y,'cube').setScale(0.5);
 			child.setInteractive();
 			child.on("clicked",printlog,this);
-			text  = this.add.text(x - 16, y - 16, gennum(i,j), style);
+			var text  = this.add.text(x - 16, y - 16, gennum(i,j), style);
 			child.name = text.text;
+			if(score != 0 && (parseInt(child.name) == (score - 1))){
+				child.tint = 0x228b22;
+				prev = child;
+			}
 			x = x + 64;
 		}
 		x = 190 + 32;
@@ -150,17 +117,22 @@ function mainGameCreate(){
 	time_text = this.add.text(20,20,"Time:"+total_time,style);
 	score_text = this.add.text(850,20,"Score:99",style);
 	timer = this.time.addEvent({delay:1000,repeat:total_time,callback:onTimer,callbackScope:this});
+
+	// set catch
+	set_element_storage("game_state","in_progress");
+	game_state = "in_progress";
 };
 
 function mainGameUpdate(){
 	score_text.setText("Score:"+score);
 	if (game_state == "ended"){
-		this.scene.start('game_end',{game_score:score});
+		set_element_storage("game_state","ended");
+		this.scene.start("game_end",{game_score:score});
 	}
 };
 
 function printlog(child){
-	if(game_state == "started"){
+	if(game_state == "in_progress"){
 		if(validate_user_input(parseInt(child.name))){
 			if(prev != null){
 				prev.tint = 0xffffff;
@@ -175,12 +147,14 @@ function printlog(child){
 			endgame();
 		}
 	}
+
+	// update catch
+	set_element_storage("score",score.toString());
 };
 
 
 /*******************************************************/
-var score = 0;
-var game_state = "started" // can be started or ended 
+// game logic
 
 function shuffle(array) {
   var m = array.length, t, i;
@@ -194,7 +168,9 @@ function shuffle(array) {
 }
 
 function onTimer(){
-	if(game_state == "started"){
+	// update catch
+	set_element_storage("total_time",total_time.toString());
+	if(game_state == "in_progress"){
 		if(total_time > 0){
 			time_text.setText("Time:" + --total_time);
 		}else{
